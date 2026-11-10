@@ -1,0 +1,50 @@
+原图 / YOLO 检测结果 / 英文辅助结果：Python 命令行程序
+
+在本文件夹执行（无需图形界面）：
+
+/home/sam/anaconda3/envs/yolo/bin/python single_image_three_panel_report.py \
+  --image /home/sam/ultralytics-skin/CPD-10/images/val/Atopic_dermatitis_111.jpg \
+  --weights /home/sam/ultralytics-skin/runs/train/exp4/weights/best.pt \
+  --data /home/sam/ultralytics-skin/CPD-10/data.yaml \
+  --out ./runs/three_panel_report \
+  --api-key-stdin
+
+将 --image 替换为要分析的图片。提示时输入 API key，终端中输入不显示。
+也可通过 DASHSCOPE_API_KEY 环境变量提供密钥，此时省略 --api-key-stdin。
+--qwen-model 默认 qwen3.6-plus，--timeout 默认 120 秒。
+本机自动查找 /home/sam/ultralytics-skin 中的自定义 YOLO 实现。
+其他机器可用 --yolo-root 指定包含 ultralytics 包的仓库目录。
+
+输出：
+  <输出目录>/<原图文件名>_one_row_report.jpg：三栏合成图。
+  <输出目录>/<原图文件名>_english_assessment.txt：完整英文结果。
+  <输出目录>/reports/<原图文件名>_three_panel_report.json：含英文结果的完整报告。
+  <输出目录>/visualizations/：YOLO、Qwen、融合检测图。
+  <输出目录>/reports/：原始推理的 JSON/CSV 记录。
+不同图片建议使用不同 --out，底层单图程序的部分输出采用固定文件名。
+
+三栏依次为：原图、YOLO 原始检测图、根据融合记录组织的英文辅助结果。
+图中英文区域空间有限，完整文本同时保存在 TXT 和 JSON 文件中。
+
+仅从已有融合报告离线生成合成图（不运行模型、不需要 API key）：
+
+/home/sam/anaconda3/envs/yolo/bin/python single_image_three_panel_report.py \
+  --image /path/to/image.jpg \
+  --report-json /path/to/reports/05_fused_final_report.json \
+  --out ./runs/rendered_report
+
+报告需包含 yolo_raw、fused_yolo_boxes、image、image_width 和 image_height。
+支持原单图融合程序、原界面程序及历史批量实验生成的相应报告结构。
+程序会检查图片文件名和尺寸是否与报告匹配。
+
+文件：
+  single_image_three_panel_report.py：直接执行入口、英文结果和合成图生成。
+  single_image_yolo_qwen_compare_dedup_conf_floor_contain.py：原始命令行融合模块。
+两个 Python 文件需要放在同一文件夹中。
+
+依赖：OpenCV、Pillow；新推理还需要 NumPy、PyYAML、pandas、PyTorch、
+匹配权重的 Ultralytics 实现及 openai。本程序不使用 Qt、PyQt 或 PySide。
+权重、数据及 API key 不包含在本文件夹中。
+
+论文说明：英文结果由 english_assessment() 按检测和融合记录组织生成，
+不是模型原始的逐步推理记录，也不是经验证的中医辨证结果。

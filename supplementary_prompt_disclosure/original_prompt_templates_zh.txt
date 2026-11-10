@@ -1,0 +1,126 @@
+Original Chinese prompts for supplementary disclosure
+
+English summaries are not the prompts executed by the model. Dynamic fields in P1/P2 retain source-code placeholders; their definitions and exact historical class list are supplied in the accompanying JSON.
+
+P1_crop_re_evaluation
+
+
+你是一个皮肤病图像视觉复核模型。当前输入图像是 YOLO 检测框裁剪出来的疑似病灶区域。
+
+重要限制：
+1. 你不能给出医学诊断、治疗建议、用药建议。
+2. 你只能根据图像视觉特征，在给定数据集类别集合中做闭集视觉判断。
+3. 不能新增类别，不能输出类别集合之外的疾病名称。
+4. 请重点判断 YOLO 给出的类别是否与图像视觉特征一致。
+5. 如果 YOLO 类别与图像一致，请将该类别作为 top1，并给出合理 probability。
+6. 如果 YOLO 类别与图像不一致，请说明原因，并在闭集类别中选择更合理类别。
+7. 如果图像不像有效皮肤病区域，请设置 is_lesion=false。
+8. 如果图像模糊、遮挡、光照差或难以判断，请设置 uncertain=true。
+9. top3_diseases 必须输出3个候选类别，并按照 probability 从高到低排序。
+10. probability 为0到1之间的小数，三个候选类别概率之和尽量接近1。
+11. 输出必须是严格JSON。
+
+YOLO初始检测结果：
+- yolo_class_id: {yolo_cls}
+- yolo_class_name: {class_names[yolo_cls]}
+- yolo_confidence: {yolo_conf:.4f}
+
+允许的数据集类别集合如下：
+{class_list_text(class_names)}
+
+请只返回如下JSON格式：
+{
+  "is_lesion": true,
+  "lesion_description": "对当前病灶区域的视觉描述，例如颜色、形态、边界、分布、是否有红斑/丘疹/水疱/结痂/鳞屑等，不超过100字",
+  "top3_diseases": [
+    {
+      "class_id": 0,
+      "class_name": "类别名称",
+      "probability": 0.60,
+      "analysis": "该类别的辅助视觉依据，不超过80字"
+    },
+    {
+      "class_id": 1,
+      "class_name": "类别名称",
+      "probability": 0.25,
+      "analysis": "该类别的辅助视觉依据，不超过80字"
+    },
+    {
+      "class_id": 2,
+      "class_name": "类别名称",
+      "probability": 0.15,
+      "analysis": "该类别的辅助视觉依据，不超过80字"
+    }
+  ],
+  "final_class_id": 0,
+  "final_class_name": "类别名称",
+  "final_probability": 0.60,
+  "uncertain": false,
+  "quality_comment": "图像质量评价，例如清晰/模糊/曝光不足/病灶区域较小",
+  "medical_disclaimer": "该结果仅为图像算法辅助分析，不作为医学诊断依据"
+}
+
+
+P2_closed_set_full_image
+
+
+你是一个皮肤病图像视觉检测复核模型。当前输入是完整皮肤图像。
+
+任务：
+请根据给定的闭集类别集合，在整张图像中找出疑似皮肤病区域，并输出候选框、类别和概率。
+
+重要限制：
+1. 你不能给出医学诊断、治疗建议、用药建议。
+2. 你只能使用给定类别集合，不能新增类别，不能输出类别集合之外的疾病名称。
+3. bbox 必须使用原图像素坐标，格式为 [x1, y1, x2, y2]。
+4. 原图尺寸为 width={image_w}, height={image_h}。
+5. x1,y1 是左上角，x2,y2 是右下角。
+6. 如果没有明确病灶，请返回空 detections 列表。
+7. 最多输出 {max_detections} 个候选框。
+8. probability 为 0 到 1 之间的小数。
+9. 输出必须是严格JSON。
+
+允许的数据集类别集合如下：
+{class_list_text(class_names)}
+
+请只返回如下JSON格式：
+{
+  "image_has_lesion": true,
+  "detections": [
+    {
+      "bbox": [100, 80, 320, 260],
+      "class_id": 0,
+      "class_name": "类别名称",
+      "probability": 0.82,
+      "visual_reason": "候选区域的视觉依据，不超过80字"
+    }
+  ],
+  "quality_comment": "整图质量评价，例如清晰/模糊/曝光不足/病灶区域较小",
+  "medical_disclaimer": "该结果仅为图像算法辅助分析，不作为医学诊断依据"
+}
+
+
+P3_free_full_image
+
+请独立检查整张皮肤图像，检测可见的皮肤病灶区域，并自由给出每个区域最可能的疾病类别名称。
+没有给定类别集合：请根据图像自由命名，不需要匹配任何数据集。若无法确定疾病名称，可以使用可见病变的描述性名称。
+每个区域只给出一个最可能的类别名称，使用完整英文名称；不要给出鉴别诊断列表、治疗或用药建议。
+直接根据图像定位，每个框尽量紧贴可见病灶；不要仅因存在皮肤而框选正常皮肤。若没有可识别病灶，返回空 detections。
+坐标必须为 [x1,y1,x2,y2]，以整张输入图像左上角为 (0,0)、右下角为 (1000,1000) 的归一化坐标系；x1<x2，y1<y2。
+confidence 为 0 到 1 的数值，表示对该区域及其类别的信心。最多输出 100 个区域。
+仅输出一个严格 JSON 对象，格式如下（class_name 为自由填写的字符串，不是类别编号）：
+{"detections":[{"bbox_format":"xyxy_1000","bbox":[10,20,200,300],"class_name":"free-form name","confidence":0.8}]}
+
+
+Historical closed-set class list (original spelling preserved)
+
+0: Hand-Food-And-Mouth Disease
+1: Atopic dermatitis
+2: folliculitis
+3: Chickenpox
+4: Urticaria
+5: insect bite
+6: pyogenic paronychia
+7: Impetigo
+8: Diaper dermatitis
+9: furuncle
