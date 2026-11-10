@@ -151,7 +151,6 @@ python single_image_three_panel_report.py \
 | :--- | :--- | :--- | :--- |
 | **CPD-10 / DKFD** | 儿童皮肤病图像数据集及原始检测研究 | [CPD-10 数据集](https://github.com/ACMISLab/fdd_2020/tree/main/CPD-10) · [DKFD 仓库](https://github.com/ACMISLab/fdd_2020) | [DKFD 论文 · Applied Sciences, 2023](https://doi.org/10.3390/app13105958) |
 | **Ultralytics YOLO** | 当前脚本使用的 YOLO Python 接口与检测工具生态 | [ultralytics/ultralytics](https://github.com/ultralytics/ultralytics) | [Ultralytics 官方文档](https://docs.ultralytics.com/) |
-| **YOLOv12** | 随附论文采用的 YOLO12s 检测基线 | [sunsmarterjie/yolov12](https://github.com/sunsmarterjie/yolov12) | [YOLOv12 论文 · NeurIPS 2025](https://papers.nips.cc/paper_files/paper/2025/hash/7103444259031cc58051f8c9a4868533-Abstract-Conference.html) |
 
 CPD-10 对应文献为：Fan, D.; Li, H.; Chen, M.; Liang, Q.; Xu, H. **DKFD: Optimizing Common Pediatric Dermatoses Detection with Novel Loss Function and Post-Processing.** *Applied Sciences*, 2023, 13(10), 5958. [DOI: 10.3390/app13105958](https://doi.org/10.3390/app13105958)。使用该数据集时，请同时引用其原始工作。
 
